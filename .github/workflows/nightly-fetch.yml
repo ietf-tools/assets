@@ -12,6 +12,48 @@ env:
 jobs:
   fetch:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - from: bofreq
+            to: ietf-ftp/bofreq
+            tar: bofreq
+          - from: everything-ftp/charter
+            to: ietf-ftp/charter
+            tar: charter
+          - from: everything-ftp/conflict-reviews
+            to: ietf-ftp/conflict-reviews
+            tar: conflict-reviews
+          - from: everything-ftp/internet-drafts
+            to: ietf-ftp/internet-drafts
+            tar: internet-drafts
+          - from: everything-ftp/review
+            to: ietf-ftp/review
+            tar: review
+          - from: everything-ftp/rfc
+            to: ietf-ftp/rfc
+            tar: rfc
+          - from: everything-ftp/slides
+            to: ietf-ftp/slides
+            tar: slides
+          - from: everything-ftp/status-changes
+            to: ietf-ftp/status-changes
+            tar: status-changes
+          - from: everything-ftp/yang
+            to: ietf-ftp/yang
+            tar: yang
+          - from: dev.media/floor
+            to: media/floor
+            tar: floor
+          - from: dev.media/photo
+            to: media/photo
+            tar: photo
+          - from: id-archive
+            to: archive/id
+            tar: id-archive
+          - from: proceedings
+            to: www6s/proceedings
+            tar: proceedings
 
     steps:
       - uses: actions/checkout@v3
@@ -23,51 +65,19 @@ jobs:
           
       - name: Fetch assets
         run: |
-          for dir in bofreq; do
-              dest="$DEST_ROOT/ietf-ftp/$dir"
-              mkdir -p "$dest"
-              echo "Fetching $dest ..."
-              rsync -auz rsync.ietf.org::$dir/ $dest/
-          done
-
-          for dir in charter conflict-reviews internet-drafts review rfc slides status-changes yang; do
-              dest="$DEST_ROOT/ietf-ftp/$dir"
-              mkdir -p "$dest"
-              echo "Fetching $dest ..."
-              rsync -auz rsync.ietf.org::everything-ftp/$dir/ $dest/
-          done
-
-          for dir in floor photo; do
-              dest="$DEST_ROOT/media/$dir"
-              mkdir -p "$dest"
-              echo "Fetching $dest ..."
-              rsync -auz rsync.ietf.org::dev.media/$dir/ $dest/
-          done
-
-          dest="$DEST_ROOT/archive/id"
+          dest="$DEST_ROOT/${{ matrix.to }}"
           mkdir -p "$dest"
           echo "Fetching $dest ..."
-          rsync -auz rsync.ietf.org::id-archive/ $dest/
-
-          dest="$DEST_ROOT/www6s/proceedings"
-          mkdir -p "$dest"
-          echo "Fetching $dest ..."
-          rsync -auz rsync.ietf.org::proceedings/ $dest/
-          
-      - name: Make tarballs
-        run: |
-          tar -czf $GITHUB_WORKSPACE/ietf-ftp.tar.gz -C $DEST_ROOT/ietf-ftp .
-          tar -czf $GITHUB_WORKSPACE/media.tar.gz -C $DEST_ROOT/media .
-          tar -czf $GITHUB_WORKSPACE/id-archive.tar.gz -C $DEST_ROOT/archive/id .
-          tar -czf $GITHUB_WORKSPACE/proceedings.tar.gz -C $DEST_ROOT/www6s/proceedings .
+          rsync -auz rsync.ietf.org::${{ matrix.from }}/ $dest/
+          echo "Building ${{ matrix.tar }}.tar.gz archive..."
+          tar -czf $GITHUB_WORKSPACE/${{ matrix.tar }}.tar.gz -C $DEST_ROOT .
           
       - name: Update Release
         uses: ncipollo/release-action@v1.10.0
         with:
           allowUpdates: true
-          artifacts: "*.tar.gz"
+          artifacts: "${{ matrix.tar }}.tar.gz"
           omitBody: true
-          name: latest
-          prerelease: false
+          omitNameDuringUpdate: true
           replacesArtifacts: true
           tag: v1
