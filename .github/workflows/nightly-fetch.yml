@@ -51,9 +51,9 @@ jobs:
           - from: id-archive
             to: archive/id
             tar: id-archive
-          - from: proceedings
-            to: www6s/proceedings
-            tar: proceedings
+#           - from: proceedings
+#             to: www6s/proceedings
+#             tar: proceedings
 
     steps:
       - uses: actions/checkout@v3
@@ -75,7 +75,6 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/archive"
           echo "Building ${{ matrix.tar }}.7z archive..."
           7z -v500m a $GITHUB_WORKSPACE/archive/${{ matrix.tar }}.7z $DEST_ROOT/*
-          # tar -czf $GITHUB_WORKSPACE/${{ matrix.tar }}.tar.gz -C $DEST_ROOT .
           
       - name: Update Release
         uses: ncipollo/release-action@v1.10.0
