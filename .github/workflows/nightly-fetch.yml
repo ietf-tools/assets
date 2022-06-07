@@ -67,9 +67,12 @@ jobs:
         run: |
           dest="$DEST_ROOT/${{ matrix.to }}"
           mkdir -p "$dest"
-          mkdir -p "$GITHUB_WORKSPACE/archive"
           echo "Fetching $dest ..."
           rsync -auz rsync.ietf.org::${{ matrix.from }}/ $dest/
+          
+      - name: Build archive
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/archive"
           echo "Building ${{ matrix.tar }}.7z archive..."
           7z -v500m a $GITHUB_WORKSPACE/archive/${{ matrix.tar }}.7z $DEST_ROOT/*
           # tar -czf $GITHUB_WORKSPACE/${{ matrix.tar }}.tar.gz -C $DEST_ROOT .
