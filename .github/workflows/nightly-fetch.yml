@@ -61,22 +61,24 @@ jobs:
       - name: Install rsync
         run: |
           sudo apt-get update
-          sudo apt-get -y install --no-install-recommends rsync
+          sudo apt-get -y install --no-install-recommends rsync p7zip-full
           
       - name: Fetch assets
         run: |
           dest="$DEST_ROOT/${{ matrix.to }}"
           mkdir -p "$dest"
+          mkdir -p "$GITHUB_WORKSPACE/archive"
           echo "Fetching $dest ..."
           rsync -auz rsync.ietf.org::${{ matrix.from }}/ $dest/
-          echo "Building ${{ matrix.tar }}.tar.gz archive..."
-          tar -czf $GITHUB_WORKSPACE/${{ matrix.tar }}.tar.gz -C $DEST_ROOT .
+          echo "Building ${{ matrix.tar }}.7z archive..."
+          7z -v500m a $GITHUB_WORKSPACE/archive/${{ matrix.tar }}.7z $DEST_ROOT/*
+          # tar -czf $GITHUB_WORKSPACE/${{ matrix.tar }}.tar.gz -C $DEST_ROOT .
           
       - name: Update Release
         uses: ncipollo/release-action@v1.10.0
         with:
           allowUpdates: true
-          artifacts: "${{ matrix.tar }}.tar.gz"
+          artifacts: "archive/*.*"
           omitBody: true
           omitNameDuringUpdate: true
           replacesArtifacts: true
